@@ -1,0 +1,35 @@
+name: Mirror plezy APKs
+
+on:
+  schedule:
+    # Every 6 hours. Checks the newest upstream release and mirrors it if new.
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      mirror_limit:
+        description: 'How many of the newest upstream releases to check/mirror'
+        required: false
+        default: '1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-plezy
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this repo
+        uses: actions/checkout@v4
+
+      - name: Mirror APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO: edde746/plezy
+          MIRROR_LIMIT: ${{ github.event.inputs.mirror_limit || '1' }}
+        run: |
+          chmod +x ./mirror.sh
+          ./mirror.sh
